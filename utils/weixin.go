@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"flag"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -22,8 +23,10 @@ import (
 	"time"
 )
 
+var Debug = flag.String("d", "on", "if on debug mode")
+
 func debugPrint(content interface{}) {
-	if *debug == "on" {
+	if *Debug == "on" {
 		fmt.Println(content)
 	}
 }
@@ -536,7 +539,7 @@ func (wxweb *Wxweb) test() {
 
 }
 
-func (wxweb *Wxweb) start() {
+func (wxweb *Wxweb) Start() {
 	fmt.Println("[*] 微信网页版 ... 开动")
 	wxweb._init()
 	wxweb._run("[*] 正在获取 uuid ... ", wxweb.getUUID)

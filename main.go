@@ -13,14 +13,14 @@ const (
 	Version = "0.1.1"
 )
 
-var debug = flag.String("d", "on", "if on debug mode")
+
 
 func main() {
 
 	flag.Parse()
 
-	fmt.Printf("debug mode %s\n", *debug)
+	fmt.Printf("debug mode %s\n", *utils.Debug)
 
 	wx := utils.Wxweb{}
-	wx.start()
+	wx.Start()
 }
