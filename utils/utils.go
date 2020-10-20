@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"bytes"
@@ -103,4 +103,18 @@ func SimpleHTTPPost(urlstr string, params interface{}) ([]byte, error) {
 		return []byte(""), err
 	}
 	return body, nil
+}
+
+//ServiceError 自定义错误
+type ServiceError struct {
+	Msg string
+}
+
+func (e *ServiceError) Error() string {
+	return fmt.Sprintf("%s", e.Msg)
+}
+
+//NewServiceError 自定义错误func
+func NewServiceError(msg string) error {
+	return &ServiceError{msg}
 }

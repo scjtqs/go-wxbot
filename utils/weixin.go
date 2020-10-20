@@ -1,5 +1,5 @@
 //web weixin client
-package main
+package utils
 
 import (
 	"bytes"
@@ -28,7 +28,7 @@ func debugPrint(content interface{}) {
 	}
 }
 
-type wxweb struct {
+type Wxweb struct {
 	uuid        string
 	baseURI     string
 	redirectURI string
@@ -45,7 +45,7 @@ type wxweb struct {
 	httpClient  *http.Client
 }
 
-func (wxweb *wxweb) getUUID(args ...interface{}) bool {
+func (wxweb *Wxweb) getUUID(args ...interface{}) bool {
 	urlstr := "https://login.weixin.qq.com/jslogin"
 	urlstr += "?appid=wx782c26e4c19acffb&fun=new&lang=zh_CN&_=" + wxweb._unixStr()
 	data, _ := wxweb._get(urlstr, false)
@@ -59,7 +59,7 @@ func (wxweb *wxweb) getUUID(args ...interface{}) bool {
 
 }
 
-func (wxweb *wxweb) _run(desc string, f func(...interface{}) bool, args ...interface{}) {
+func (wxweb *Wxweb) _run(desc string, f func(...interface{}) bool, args ...interface{}) {
 	start := time.Now().UnixNano()
 	fmt.Print(desc)
 	var result bool
@@ -79,7 +79,7 @@ func (wxweb *wxweb) _run(desc string, f func(...interface{}) bool, args ...inter
 	}
 }
 
-func (wxweb *wxweb) _post(urlstr string, params map[string]interface{}, jsonFmt bool) ([]byte, error) {
+func (wxweb *Wxweb) _post(urlstr string, params map[string]interface{}, jsonFmt bool) ([]byte, error) {
 	var err error
 	var resp *http.Response
 	if jsonFmt == true {
@@ -119,7 +119,7 @@ func (wxweb *wxweb) _post(urlstr string, params map[string]interface{}, jsonFmt 
 	return body, nil
 }
 
-func (wxweb *wxweb) _get(urlstr string, jsonFmt bool) (string, error) {
+func (wxweb *Wxweb) _get(urlstr string, jsonFmt bool) (string, error) {
 	var err error
 	res := ""
 	request, _ := http.NewRequest("GET", urlstr, nil)
@@ -137,11 +137,11 @@ func (wxweb *wxweb) _get(urlstr string, jsonFmt bool) (string, error) {
 	return string(body), nil
 }
 
-func (wxweb *wxweb) _unixStr() string {
+func (wxweb *Wxweb) _unixStr() string {
 	return strconv.Itoa(int(time.Now().Unix()))
 }
 
-func (wxweb *wxweb) genQRcode(args ...interface{}) bool {
+func (wxweb *Wxweb) genQRcode(args ...interface{}) bool {
 	urlstr := "https://login.weixin.qq.com/qrcode/" + wxweb.uuid
 	urlstr += "?t=webwx"
 	urlstr += "&_=" + wxweb._unixStr()
@@ -167,7 +167,7 @@ func (wxweb *wxweb) genQRcode(args ...interface{}) bool {
 
 }
 
-func (wxweb *wxweb) waitForLogin(tip int) bool {
+func (wxweb *Wxweb) waitForLogin(tip int) bool {
 	time.Sleep(time.Duration(tip) * time.Second)
 	url := "https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login"
 	url += "?tip=" + strconv.Itoa(tip) + "&uuid=" + wxweb.uuid + "&_=" + wxweb._unixStr()
@@ -199,7 +199,7 @@ func (wxweb *wxweb) waitForLogin(tip int) bool {
 	return false
 }
 
-func (wxweb *wxweb) login(args ...interface{}) bool {
+func (wxweb *Wxweb) login(args ...interface{}) bool {
 	data, _ := wxweb._get(wxweb.redirectURI, false)
 	type Result struct {
 		Skey       string `xml:"skey"`
@@ -225,7 +225,7 @@ func (wxweb *wxweb) login(args ...interface{}) bool {
 	return true
 }
 
-func (wxweb *wxweb) webwxinit(args ...interface{}) bool {
+func (wxweb *Wxweb) webwxinit(args ...interface{}) bool {
 	url := fmt.Sprintf("%s/webwxinit?passTicket=%s&skey=%s&r=%s", wxweb.baseURI, wxweb.passTicket, wxweb.skey, wxweb._unixStr())
 	params := make(map[string]interface{})
 	params["BaseRequest"] = wxweb.BaseRequest
@@ -247,7 +247,7 @@ func (wxweb *wxweb) webwxinit(args ...interface{}) bool {
 	return retCode == 0
 }
 
-func (wxweb *wxweb) _setsynckey() {
+func (wxweb *Wxweb) _setsynckey() {
 	keys := []string{}
 	for _, keyVal := range wxweb.SyncKey["List"].([]interface{}) {
 		key := strconv.Itoa(int(keyVal.(map[string]interface{})["Key"].(float64)))
@@ -258,7 +258,7 @@ func (wxweb *wxweb) _setsynckey() {
 	debugPrint(wxweb.synckey)
 }
 
-func (wxweb *wxweb) synccheck() (string, string) {
+func (wxweb *Wxweb) synccheck() (string, string) {
 	urlstr := fmt.Sprintf("https://%s/cgi-bin/mmwebwx-bin/synccheck", wxweb.syncHost)
 	v := url.Values{}
 	v.Add("r", wxweb._unixStr())
@@ -282,7 +282,7 @@ func (wxweb *wxweb) synccheck() (string, string) {
 
 }
 
-func (wxweb *wxweb) testsynccheck(args ...interface{}) bool {
+func (wxweb *Wxweb) testsynccheck(args ...interface{}) bool {
 	SyncHost := []string{
 		"webpush.wx.qq.com",
 		"webpush2.wx.qq.com",
@@ -302,7 +302,7 @@ func (wxweb *wxweb) testsynccheck(args ...interface{}) bool {
 	return false
 }
 
-func (wxweb *wxweb) webwxstatusnotify(args ...interface{}) bool {
+func (wxweb *Wxweb) webwxstatusnotify(args ...interface{}) bool {
 	urlstr := fmt.Sprintf("%s/webwxstatusnotify?lang=zh_CN&passTicket=%s", wxweb.baseURI, wxweb.passTicket)
 	params := make(map[string]interface{})
 	params["BaseRequest"] = wxweb.BaseRequest
@@ -323,7 +323,7 @@ func (wxweb *wxweb) webwxstatusnotify(args ...interface{}) bool {
 	return retCode == 0
 }
 
-func (wxweb *wxweb) webgetchatroommember(chatroomID string) (map[string]string, error) {
+func (wxweb *Wxweb) webgetchatroommember(chatroomID string) (map[string]string, error) {
 	urlstr := fmt.Sprintf("%s/webwxbatchgetcontact?type=ex&r=%s&passTicket=%s", wxweb.baseURI, wxweb._unixStr(), wxweb.passTicket)
 	params := make(map[string]interface{})
 	params["BaseRequest"] = wxweb.BaseRequest
@@ -411,7 +411,7 @@ func (wxweb *wxweb) webgetchatroommember(chatroomID string) (map[string]string, 
 	return stats, nil
 }
 
-func (wxweb *wxweb) webwxsync() interface{} {
+func (wxweb *Wxweb) webwxsync() interface{} {
 	urlstr := fmt.Sprintf("%s/webwxsync?sid=%s&skey=%s&passTicket=%s", wxweb.baseURI, wxweb.sid, wxweb.skey, wxweb.passTicket)
 	params := make(map[string]interface{})
 	params["BaseRequest"] = wxweb.BaseRequest
@@ -434,7 +434,7 @@ func (wxweb *wxweb) webwxsync() interface{} {
 	return data
 }
 
-func (wxweb *wxweb) handleMsg(r interface{}) {
+func (wxweb *Wxweb) handleMsg(r interface{}) {
 	myNickName := wxweb.User["NickName"].(string)
 	for _, msg := range r.(map[string]interface{})["AddMsgList"].([]interface{}) {
 		// fmt.Printf("[*] message: %v \n", msg)
@@ -492,12 +492,12 @@ func (wxweb *wxweb) handleMsg(r interface{}) {
 	}
 }
 
-func (wxweb *wxweb) getReplyByAPI(realcontent, fromUserName, groupID, userIDName string) (string, error) {
+func (wxweb *Wxweb) getReplyByAPI(realcontent, fromUserName, groupID, userIDName string) (string, error) {
 	username := fromUserName[1:33]
 	return getAnswer(realcontent, username, groupID, userIDName, wxweb.User["NickName"].(string))
 }
 
-func (wxweb *wxweb) webwxsendmsg(message string, toUseNname string) bool {
+func (wxweb *Wxweb) webwxsendmsg(message string, toUseNname string) bool {
 	urlstr := fmt.Sprintf("%s/webwxsendmsg?passTicket=%s", wxweb.baseURI, wxweb.passTicket)
 	clientMsgID := wxweb._unixStr() + "0" + strconv.Itoa(rand.Int())[3:6]
 	params := make(map[string]interface{})
@@ -520,7 +520,7 @@ func (wxweb *wxweb) webwxsendmsg(message string, toUseNname string) bool {
 
 }
 
-func (wxweb *wxweb) _init() {
+func (wxweb *Wxweb) _init() {
 	gCookieJar, _ := cookiejar.New(nil)
 	httpclient := http.Client{
 		CheckRedirect: nil,
@@ -532,11 +532,11 @@ func (wxweb *wxweb) _init() {
 	wxweb.deviceID = "e" + str[2:17]
 }
 
-func (wxweb *wxweb) test() {
+func (wxweb *Wxweb) test() {
 
 }
 
-func (wxweb *wxweb) start() {
+func (wxweb *Wxweb) start() {
 	fmt.Println("[*] 微信网页版 ... 开动")
 	wxweb._init()
 	wxweb._run("[*] 正在获取 uuid ... ", wxweb.getUUID)
