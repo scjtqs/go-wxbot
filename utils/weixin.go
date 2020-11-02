@@ -172,9 +172,9 @@ func (wxweb *Wxweb) genQRcode(args ...interface{}) bool {
 
 func (wxweb *Wxweb) waitForLogin(tip int) bool {
 	time.Sleep(time.Duration(tip) * time.Second)
-	url := "https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login"
-	url += "?tip=" + strconv.Itoa(tip) + "&uuid=" + wxweb.uuid + "&_=" + wxweb._unixStr()
-	data, _ := wxweb._get(url, false)
+	apiurl := "https://login.weixin.qq.com/cgi-bin/mmwebwx-bin/login"
+	apiurl += "?tip=" + strconv.Itoa(tip) + "&uuid=" + wxweb.uuid + "&_=" + wxweb._unixStr()
+	data, _ := wxweb._get(apiurl, false)
 	re := regexp.MustCompile(`window.code=(\d+);`)
 	find := re.FindStringSubmatch(data)
 	if len(find) > 1 {
@@ -182,10 +182,11 @@ func (wxweb *Wxweb) waitForLogin(tip int) bool {
 		if code == "201" {
 			return true
 		} else if code == "200" {
-			re := regexp.MustCompile(`window.redirectURI="(\S+?)";`)
+			re := regexp.MustCompile(`window.redirect_uri="(\S+?)";`)
 			find := re.FindStringSubmatch(data)
 			if len(find) > 1 {
 				rURI := find[1] + "&fun=new"
+				debugPrint(rURI)
 				wxweb.redirectURI = rURI
 				re = regexp.MustCompile(`/`)
 				finded := re.FindAllStringIndex(rURI, -1)
@@ -211,7 +212,9 @@ func (wxweb *Wxweb) login(args ...interface{}) bool {
 		PassTicket string `xml:"passTicket"`
 	}
 	v := Result{}
+	debugPrint(data)
 	err := xml.Unmarshal([]byte(data), &v)
+	debugPrint(v)
 	if err != nil {
 		fmt.Printf("error: %v", err)
 		return false
@@ -229,10 +232,13 @@ func (wxweb *Wxweb) login(args ...interface{}) bool {
 }
 
 func (wxweb *Wxweb) webwxinit(args ...interface{}) bool {
-	url := fmt.Sprintf("%s/webwxinit?passTicket=%s&skey=%s&r=%s", wxweb.baseURI, wxweb.passTicket, wxweb.skey, wxweb._unixStr())
+	apiurl := fmt.Sprintf("%s/webwxinit?passTicket=%s&skey=%s&r=%s", wxweb.baseURI, wxweb.passTicket, wxweb.skey, wxweb._unixStr())
+	debugPrint(apiurl)
 	params := make(map[string]interface{})
 	params["BaseRequest"] = wxweb.BaseRequest
-	res, err := wxweb._post(url, params, true)
+	debugPrint(params)
+	res, err := wxweb._post(apiurl, params, true)
+	debugPrint(res)
 	if err != nil {
 		return false
 	}
@@ -245,7 +251,6 @@ func (wxweb *Wxweb) webwxinit(args ...interface{}) bool {
 	wxweb.User = data["User"].(map[string]interface{})
 	wxweb.SyncKey = data["SyncKey"].(map[string]interface{})
 	wxweb._setsynckey()
-
 	retCode := data["BaseResponse"].(map[string]interface{})["Ret"].(float64)
 	return retCode == 0
 }

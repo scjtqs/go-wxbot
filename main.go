@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/scjtqs/go-wxbot/utils"
 	// "log"
 	// "net/http"
-	"github.com/scjtqs/go-wxbot/utils"
 )
 
 const (
